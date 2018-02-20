@@ -103,7 +103,7 @@ namespace GK {
 			for (int i = 0; i < verts.Count; i++) {
 				//var pi = indices[i];
 				var pi = i;
-				
+
 				if (pi == highest) continue;
 
 				// Index of the containing triangle
@@ -126,9 +126,6 @@ namespace GK {
 				var nt1 = new TriangleNode(pi, p1, p2);
 				var nt2 = new TriangleNode(pi, p2, p0);
 
-//				//Debug.Assert(ToTheLeft(nt0.P2, nt0.P0, nt0.P1));
-//				//Debug.Assert(ToTheLeft(nt1.P2, nt1.P0, nt1.P1));
-//				//Debug.Assert(ToTheLeft(nt2.P2, nt2.P0, nt2.P1));
 
 				// Setting the adjacency triangle references.  Only way to make
 				// sure you do this right is by drawing the triangles up on a
@@ -163,7 +160,7 @@ namespace GK {
 		}
 
 		/// <summary>
-		/// Filter the points array and triangle tree into a readable result. 
+		/// Filter the points array and triangle tree into a readable result.
 		/// </summary>
 		void GenerateResult(ref DelaunayTriangulation result) {
 			if (result == null) {
@@ -190,7 +187,7 @@ namespace GK {
 
 		/// <summary>
 		/// Shuffle the indices array. Optimal runtime depends on shuffled
-		/// input. 
+		/// input.
 		/// </summary>
 		void ShuffleIndices() {
 			indices.Clear();
@@ -213,16 +210,16 @@ namespace GK {
 
 		/// <summary>
 		/// Find the leaf of the triangles[ti] subtree that contains a given
-		/// edge. 
+		/// edge.
 		///
 		/// We need this because when we split or flip triangles, the adjacency
 		/// references don't update, so even if the adjacency triangles were
 		/// leaves when the node was created, they might not be leaves later.
 		/// If they aren't, they're going to be the ancestor of the correct
-		/// leaf, so this method goes down the tree finding the right leaf. 
+		/// leaf, so this method goes down the tree finding the right leaf.
 		/// </summary>
 		int LeafWithEdge(int ti, int e0, int e1) {
-//			Debug.Assert(triangles[ti].HasEdge(e0, e1));
+			Debug.Assert(triangles[ti].HasEdge(e0, e1));
 
 			while (!triangles[ti].IsLeaf) {
 				var t = triangles[ti];
@@ -234,7 +231,7 @@ namespace GK {
 				} else if (t.C2 != -1 && triangles[t.C2].HasEdge(e0, e1)) {
 					ti = t.C2;
 				} else {
-//					Debug.Assert(false);
+					Debug.Assert(false);
 					throw new System.Exception("This should never happen");
 				}
 			}
@@ -242,19 +239,22 @@ namespace GK {
 			return ti;
 		}
 
+		/// <summary>
+		/// Is the edge legal, or does it need to be flipped?
+		/// </summary>
 		bool LegalEdge(int k, int l, int i, int j) {
-//			Debug.Assert(k != highest && k >= 0);
+			Debug.Assert(k != highest && k >= 0);
 
 			var lMagic = l < 0;
 			var iMagic = i < 0;
 			var jMagic = j < 0;
 
-//			Debug.Assert(!(iMagic && jMagic));
+			Debug.Assert(!(iMagic && jMagic));
 
 			if (lMagic) {
 				return true;
 			} else if (iMagic) {
-//				Debug.Assert(!jMagic);
+				Debug.Assert(!jMagic);
 
 				var p = verts[l];
 				var l0 = verts[k];
@@ -262,7 +262,7 @@ namespace GK {
 
 				return Geom.ToTheLeft(p, l0, l1);
 			} else if (jMagic) {
-//				Debug.Assert(!iMagic);
+				Debug.Assert(!iMagic);
 
 				var p = verts[l];
 				var l0 = verts[k];
@@ -270,15 +270,15 @@ namespace GK {
 
 				return !Geom.ToTheLeft(p, l0, l1);
 			} else {
-//				Debug.Assert(k >= 0 && l >= 0 && i >= 0 && j >= 0);
+				Debug.Assert(k >= 0 && l >= 0 && i >= 0 && j >= 0);
 
 				var p = verts[l];
 				var c0 = verts[k];
 				var c1 = verts[i];
 				var c2 = verts[j];
 
-//				Debug.Assert(Geom.ToTheLeft(c2, c0, c1));
-//				Debug.Assert(Geom.ToTheLeft(c2, c1, p));
+				Debug.Assert(Geom.ToTheLeft(c2, c0, c1));
+				Debug.Assert(Geom.ToTheLeft(c2, c1, p));
 
 				return !Geom.InsideCircumcircle(p, c0, c1, c2);
 			}
@@ -286,11 +286,11 @@ namespace GK {
 
 		/// <summary>
 		/// Key part of the algorithm. Flips edges if they need to be flipped,
-		/// and recurses. 
+		/// and recurses.
 		///
 		/// pi is the newly inserted point, creating a new triangle ti0.
 		/// The adjacent triangle opposite pi in ti0 is ti1. The edge separating
-		/// the two triangles is li0 and li1. 
+		/// the two triangles is li0 and li1.
 		///
 		/// Checks if the (li0, li1) edge needs to be flipped. If it does,
 		/// creates two new triangles, and recurses to check if the newly
@@ -298,19 +298,19 @@ namespace GK {
 		/// <summary>
 		void LegalizeEdge(int ti0, int ti1, int pi, int li0, int li1) {
 			// ti1 might not be a leaf node (ti0 is guaranteed to be, it was
-			// just created), so find the current correct leaf. 
+			// just created), so find the current correct leaf.
 			ti1 = LeafWithEdge(ti1, li0, li1);
 
 			var t0 = triangles[ti0];
 			var t1 = triangles[ti1];
 			var qi = t1.OtherPoint(li0, li1);
 
-//			Debug.Assert(t0.HasEdge(li0, li1));
-//			Debug.Assert(t1.HasEdge(li0, li1));
-//			Debug.Assert(t0.IsLeaf);
-//			Debug.Assert(t1.IsLeaf);
-//			Debug.Assert(t0.P0 == pi || t0.P1 == pi || t0.P2 == pi);
-//			Debug.Assert(t1.P0 == qi || t1.P1 == qi || t1.P2 == qi);
+			Debug.Assert(t0.HasEdge(li0, li1));
+			Debug.Assert(t1.HasEdge(li0, li1));
+			Debug.Assert(t0.IsLeaf);
+			Debug.Assert(t1.IsLeaf);
+			Debug.Assert(t0.P0 == pi || t0.P1 == pi || t0.P2 == pi);
+			Debug.Assert(t1.P0 == qi || t1.P1 == qi || t1.P2 == qi);
 
 
 			//var p = points[pi];
@@ -324,9 +324,6 @@ namespace GK {
 
 				var t2 = new TriangleNode(pi, li0, qi);
 				var t3 = new TriangleNode(pi, qi, li1);
-
-//				//Debug.Assert(ToTheLeft(qi, pi, li0));
-//				//Debug.Assert(ToTheLeft(li1, pi, qi));
 
 				t2.A0 = t1.Opposite(li1);
 				t2.A1 = ti3;
@@ -357,7 +354,7 @@ namespace GK {
 		}
 
 		/// <summary>
-		/// Find the leaf triangle in the triangle tree containing a certain point. 
+		/// Find the leaf triangle in the triangle tree containing a certain point.
 		/// </summary>
 		int FindTriangleNode(int pi) {
 			var curr = 0;
@@ -370,12 +367,6 @@ namespace GK {
 				} else if (t.C1 >= 0 && PointInTriangle(pi, t.C1)) {
 					curr = t.C1;
 				} else {
-					var cond = t.C2 >= 0 && PointInTriangle(pi, t.C2);
-
-					if (!cond) {
-//						Debug.Assert(cond);
-					}
-
 					curr = t.C2;
 				}
 			}
@@ -384,7 +375,7 @@ namespace GK {
 		}
 
 		/// <summary>
-		/// Convenience method to check if a point is inside a certain triangle. 
+		/// Convenience method to check if a point is inside a certain triangle.
 		/// </summary>
 		bool PointInTriangle(int pi, int ti) {
 			var t = triangles[ti];
@@ -393,6 +384,9 @@ namespace GK {
 				&& ToTheLeft(pi, t.P2, t.P0);
 		}
 
+		/// <summary>
+		/// Is the point to the left of the edge?
+		/// </summary>
 		bool ToTheLeft(int pi, int li0, int li1) {
 			if (li0 == -2) {
 				return Higher(li1, pi);
@@ -403,53 +397,17 @@ namespace GK {
 			} else if (li1 == -1) {
 				return Higher(li0, pi);
 			} else {
-//				Debug.Assert(li0 >= 0);
-//				Debug.Assert(li1 >= 0);
+				Debug.Assert(li0 >= 0);
+				Debug.Assert(li1 >= 0);
 
 				return Geom.ToTheLeft(verts[pi], verts[li0], verts[li1]);
 			}
 		}
 
 		/// <summary>
-		/// Convenience struct to calculate AABB of triangulation. Used to
-		/// calculate the root triangle, which bounds all other triangles. 
-		/// <summary>
-		struct Rect {
-			public Vector2 Min;
-			public Vector2 Max;
-
-			public Vector2 Size {
-				get {
-					return Max - Min;
-				}
-			}
-
-			public Vector2 Center {
-				get {
-					return 0.5f * (Min + Max);
-				}
-			}
-
-			public void Encapsulate(Vector2 point) {
-				if (point.x <= Min.x) {
-					Min.x = point.x;
-				}
-				if (point.x >= Max.x) {
-					Max.x = point.x;
-				}
-				if (point.y <= Min.y) {
-					Min.y = point.y;
-				}
-				if (point.y >= Max.y) {
-					Max.y = point.y;
-				}
-			}
-		}
-
-		/// <summary>
-		/// A single node in the triangle tree. 
+		/// A single node in the triangle tree.
 		///
-		/// All parameters are indexes. 
+		/// All parameters are indexes.
 		/// </summary>
 		struct TriangleNode {
 			// The points of the triangle
@@ -467,10 +425,10 @@ namespace GK {
 			// The triangles adjacent to this triangle
 			//
 			// A0 is the adjacent triangle opposite to the P0 point (i.e. the A0
-			// triangle has (P1, P2) as an edge. 
+			// triangle has (P1, P2) as an edge.
 			//
 			// A value of -1 means "no adjacent triangle" (only true for
-			// triangles with one edge on the bounding triangle). 
+			// triangles with one edge on the bounding triangle).
 			public int A0;
 			public int A1;
 			public int A2;
@@ -484,7 +442,7 @@ namespace GK {
 
 			/// <summary>
 			/// Is this an "inner" triangle, part of the final triangulation, or
-			/// is some part of this triangle connected to the bounding triangle. 
+			/// is some part of this triangle connected to the bounding triangle.
 			/// </summary>
 			public bool IsInner {
 				get {
@@ -548,7 +506,7 @@ namespace GK {
 
 
 			/// <summary>
-			/// Get the triangle opposite a certain point. 
+			/// Get the triangle opposite a certain point.
 			/// </summary>
 			public int Opposite(int p) {
 				if (p == P0) return A0;
@@ -558,7 +516,7 @@ namespace GK {
 			}
 
 			/// <summary>
-			/// For debugging purposes. 
+			/// For debugging purposes.
 			/// </summary>
 			public override string ToString() {
 				if (IsLeaf) {

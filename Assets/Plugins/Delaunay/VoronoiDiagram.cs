@@ -4,8 +4,6 @@ using UnityEngine;
 
 namespace GK {
 	public class VoronoiDiagram {
-
-			
 		/// <summary>
 		/// The voronoi diagram is calculated from a Delaunay triangulation.
 		/// This is a reference to the "source" triangulation, in case you need
@@ -19,20 +17,27 @@ namespace GK {
 		public readonly List<Vector2> Sites;
 		
 		/// <summary>
-		///
+		/// The vertices of the voronoi diagram
 		/// </summary>
 		public readonly List<Vector2> Vertices;
 		
 		/// <summary>
-		///
+		/// The edges of the voronoi diagram, grouped by site and ordered
+		/// counter-clockwise. 
 		/// </summary>
 		public readonly List<Edge> Edges;
+
+		/// <summary>
+		/// The first edge of every site. 
+		/// </summary>
+		public readonly List<int> FirstEdgeBySite;
 
 		internal VoronoiDiagram() {
 			Triangulation = new DelaunayTriangulation();
 			Sites = Triangulation.Vertices;
 			Vertices = new List<Vector2>();
 			Edges = new List<Edge>();
+			FirstEdgeBySite = new List<int>();
 		}
 
 		internal void Clear() {
@@ -40,45 +45,7 @@ namespace GK {
 			Sites.Clear();
 			Vertices.Clear();
 			Edges.Clear();
-		}
-
-		public void GetSiteEdgeRange(int site, out int firstEdge, out int lastEdge) {
-			if (Edges.Count == 0) {
-				throw new InvalidOperationException("VoronoiDiagram is empty");
-			}
-
-			if (site < 0 || site >= Sites.Count) {
-				throw new ArgumentOutOfRangeException("site");
-			}
-
-			var foundSite = false;
-
-			firstEdge = lastEdge = -1;
-
-			for (int i = 0; i < Edges.Count; i++) {
-				var edge = Edges[i];
-				var rightSite = edge.Site == site;
-
-				if (!foundSite && rightSite) {
-					foundSite = true;
-					firstEdge = i;
-				} else if (foundSite && !rightSite) {
-					lastEdge = i - 1;
-
-#if UNITY_ASSERTIONS	
-					for (int j = i + 1; j < Edges.Count; j++) {
-						Debug.Assert(Edges[i].Site != site);
-					}
-#endif
-					break;
-				}
-			}
-
-			if (firstEdge > lastEdge) {
-				Debug.Assert(lastEdge == -1);
-				Debug.Assert(site == Sites.Count - 1);
-				lastEdge = Edges.Count - 1;
-			}
+			FirstEdgeBySite.Clear();
 		}
 
 		/// <summary>
@@ -87,10 +54,15 @@ namespace GK {
 		/// or ones with all collinear points), a "ray" is a voronoi edge
 		/// starting at a given vertex and extending infinitely in one direction,
 		/// a "segment" is a regular line segment.
+		///
+		/// There are two different varietes of edges, clock-wise and
+		/// counter-clockwise. Regular edges are all clockwise, but rays can be
+		/// either, so use the type to indicate which it is. 
 		/// <summary>
 		public enum EdgeType {
 			Line,
-			Ray,
+			RayCCW,
+			RayCW,
 			Segment
 		}
 
@@ -135,7 +107,7 @@ namespace GK {
 			public Vector2 Direction;
 			
 			/// <summary>
-			/// Construct the diagram. 
+			/// Construct the edge. 
 			/// </summary>
 			public Edge(EdgeType type, int site, int vert0, int vert1, Vector2 direction) {
 				this.Type = type;

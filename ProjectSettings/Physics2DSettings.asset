@@ -19,10 +19,12 @@ Physics2DSettings:
   m_LinearSleepTolerance: 0.01
   m_AngularSleepTolerance: 2
   m_DefaultContactOffset: 0.01
+  m_AutoSimulation: 1
   m_QueriesHitTriggers: 1
   m_QueriesStartInColliders: 1
   m_ChangeStopsCallbacks: 0
   m_CallbacksOnDisable: 1
+  m_AutoSyncTransforms: 1
   m_AlwaysShowColliders: 0
   m_ShowColliderSleep: 1
   m_ShowColliderContacts: 0

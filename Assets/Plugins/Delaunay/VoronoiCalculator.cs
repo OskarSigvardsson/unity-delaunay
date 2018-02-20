@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Profiling;
 
 namespace GK {
 	public class VoronoiCalculator {
@@ -9,26 +10,32 @@ namespace GK {
 		DelaunayCalculator delCalc;
 		PTComparer cmp;
 		List<PointTriangle> pts;
-		List<VoronoiDiagram.Edge> clippedEdges;
-		List<Vector2> clippedVerts;
 
-		//List<Vector2> verts;
-		//List<int> tris;
-		//List<Vector2> circumcenters;
-		//List<VoronoiEdge> edges;
-
+		/// <summary>
+		/// Create new Voronoi calculator.
+		/// </summary>
 		public VoronoiCalculator() {
 			pts = new List<PointTriangle>();
 			delCalc = new DelaunayCalculator();
 			cmp = new PTComparer();
 		}
 
+		/// <summary>
+		/// Calculate a voronoi diagram and return it. 
+		/// </summary>
 		public VoronoiDiagram CalculateDiagram(IList<Vector2> inputVertices) {
 			VoronoiDiagram result = null;
 			CalculateDiagram(inputVertices, ref result);
 			return result;
 		}
 
+		/// <summary>
+		/// Non-allocating version of CalculateDiagram.
+		///
+		/// I guess it's not strictly true that it generates NO garbage, because
+		/// it might if it has to resize internal buffers, but all buffers are
+		/// reused from invocation to invocation. 
+		/// </summary>
 		public void CalculateDiagram(IList<Vector2> inputVertices, ref VoronoiDiagram result) {
 			// TODO: special case for 1 points
 			// TODO: special case for 2 points
@@ -46,10 +53,11 @@ namespace GK {
 
 			result.Clear();
 
+			Profiler.BeginSample("Delaunay triangulation");
 			delCalc.CalculateTriangulation(inputVertices, ref trig);
+			Profiler.EndSample();
 
 			pts.Clear();
-
 
 			var verts = trig.Vertices;
 			var tris = trig.Triangles;
@@ -59,7 +67,6 @@ namespace GK {
 
 			if (tris.Count > pts.Capacity)   { pts.Capacity = tris.Count; }
 			if (tris.Count > edges.Capacity) { edges.Capacity = tris.Count; }
-
 
 
 			for (int ti = 0; ti < tris.Count; ti+=3) {
@@ -83,7 +90,9 @@ namespace GK {
 			cmp.tris = tris;
 			cmp.verts = verts;
 
+			Profiler.BeginSample("Sorting");
 			pts.Sort(cmp);
+			Profiler.EndSample();
 
 			// The comparer lives on between runs of the algorithm, so clear the
 			// reference to the arrays so that the reference is lost. It may be
@@ -94,6 +103,8 @@ namespace GK {
 			cmp.verts = null;
 
 			for (int i = 0; i < pts.Count; i++) {
+				result.FirstEdgeBySite.Add(edges.Count);
+
 				var start = i;
 				var end = -1;
 
@@ -165,7 +176,7 @@ namespace GK {
 						}
 
 						edges.Add(new VoronoiDiagram.Edge(
-							VoronoiDiagram.EdgeType.Ray,
+							VoronoiDiagram.EdgeType.RayCCW,
 							ptCurr.Point,
 							tiCurr / 3,
 							-1,
@@ -173,7 +184,7 @@ namespace GK {
 						));
 
 						edges.Add(new VoronoiDiagram.Edge(
-							VoronoiDiagram.EdgeType.Ray,
+							VoronoiDiagram.EdgeType.RayCW,
 							ptCurr.Point,
 							tiNext / 3,
 							-1,
@@ -230,7 +241,9 @@ namespace GK {
 			if (x1 == y0 || x1 == y1 || x1 == y2) n++;
 			if (x2 == y0 || x2 == y1 || x2 == y2) n++;
 
-			return n == 2;
+			Debug.Assert(n != 3);
+
+			return n >= 2;
 		}
 
 
