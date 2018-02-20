@@ -15,7 +15,7 @@ work something out.
 ** Demo
 [[https://thumbs.gfycat.com/FoolhardyNegligibleGreyhounddog-size_restricted.gif]]
 
-[[https://gfycat.com/gifs/detail/FoolhardyNegligibleGreyhounddog][Higher res version]]
+[[https://youtu.be/f3T5jtsokz8][Higher res version]]
 ** Implementation details
 I'm generating the Delaunay triangulation using the incremental
 algorithm (Bowyer-Watson), and generating the voronoi diagram from the
