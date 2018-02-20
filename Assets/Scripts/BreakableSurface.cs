@@ -79,9 +79,9 @@ namespace GK {
 			var u2 = UnityEngine.Random.value;
 
 			var randStdNormal = Mathf.Sqrt(-2.0f * Mathf.Log(u1)) *
-				Mathf.Sin(2.0f * Mathf.PI * u2); 
+				Mathf.Sin(2.0f * Mathf.PI * u2);
 
-			return mean + stddev * randStdNormal; 
+			return mean + stddev * randStdNormal;
 		}
 
 		public void Break(Vector2 position) {
@@ -91,7 +91,7 @@ namespace GK {
 				var clip = new VoronoiClipper();
 
 				var sites = new Vector2[10];
-				
+
 				for (int i = 0; i < sites.Length; i++) {
 					var dist = Mathf.Abs(NormalizedRandom(0.0f, 1.0f/2.0f));
 					var angle = 2.0f * Mathf.PI * Random.value;
@@ -207,8 +207,6 @@ namespace GK {
 			var mesh = new Mesh();
 
 
-			// TODO: Change to SetVertices/SetTriangles when i've done the
-			// caching thing.
 			mesh.vertices = verts;
 			mesh.triangles = tris;
 			mesh.normals = norms;
