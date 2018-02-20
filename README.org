@@ -79,10 +79,10 @@ Applications]] describes this approach, but even they are wrong in one
 small detail: the test on the bottom on page 204 is wrong.
 
 This experience has lead me to belive that using the incremental
-approach to generate Delaunay triangulations and Voronoi diagrams is
-bad. It seems simpler to implement than other versions, but this
-subtlety with the containing triangle the fact that you have to
-construct an intricate tree structure makes the algorithm more complex
-and easier to get wrong than something like Quickhull or Fortune's
-sweep-line algorithm. It's also usually a bit slower. Still, it was a
-fun thing to implement.
+approach to generate Delaunay triangulations and Voronoi diagrams is a
+bad way to do it. It seems simpler to implement than other versions,
+but this subtlety with the containing triangle the fact that you have
+to construct an intricate tree structure makes the algorithm more
+complex and easier to get wrong than something like Quickhull or
+Fortune's sweep-line algorithm. It's also usually a bit slower. Still,
+it was a fun thing to implement.
