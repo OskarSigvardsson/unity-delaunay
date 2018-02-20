@@ -1,0 +1,87 @@
+
+* Voronoi destruction effect
+I was interested in implementing some algorithms for generating
+Delaunay triangulations and Voronoi diagrams, and since it's basically
+obligatory for anyone making Voronoi diagram libraries to make a
+destruction effect, this is mine!
+
+The code is written in C#, and made for the Unity engine. If you want
+just the Delaunay/Voronoi parts, they're in the
+Assets/Plugins/Delaunay folder. They're not quite as polished as I
+would like, but I would say that they're suitable for production. If
+you use it and have any problems, let me know and we'll see if we can
+work something out.
+
+** Demo
+[[https://thumbs.gfycat.com/FoolhardyNegligibleGreyhounddog-size_restricted.gif]]
+
+** Implementation details
+I'm generating the Delaunay triangulation using the incremental
+algorithm (Bowyer-Watson), and generating the voronoi diagram from the
+delaunay triangulation. You can also clip the voronoi diagram to any
+convex shape (it uses Sutherland-Hodgman clipping, adapted to voronoi
+diagrams).
+
+The fact that you can clip to any convex shape is neat, because it
+means you can "recursively" generate voronoi diagrams, so you can
+shatter already generated voronoi shards.
+
+All the "generator" classes (the delaunay generator, the voronoi
+generator, and the voronoi clipper) are designed in such a way as to
+not generate any garbage if they are reused (though I'm currently not
+doing that in the example code). If you were to do this in a real
+game, it would be suitable to run the generators on background
+threads, though they're certainly performant enough to run in real
+time in a single-threaded environment.
+
+I was going to develop this a bit further, but the limiting factor in
+this kind of destruction effect is the physics. If you generate these
+kinds of shards and let them pile up, the physics engine basically
+implodes. Given that that was the limitation, I sort-of lost interest
+in the project. As such, the non-Delaunay/Voronoi parts of the code
+are super-unoptimized and kind of a mess :)
+
+** Bowyer-Watson
+It was an interesting experience to implement Bowyer-Watson, because I
+realized that virtually every implementation I could find online was
+wrong. The algorithm generates a delaunay triangulation by first
+creating one big "container" triangle, and then iteratively adding
+sites to it splitting the big triangle into smaller triangles.
+However, the algorithm is only accurate if two of the vertices of the
+containing triangle are outside every circumcircle formed by any three
+points in the set points (the third vertex must be a "corner vertex).
+Many implementations solve this by placing the vertices of the corners
+some large distance away, or by using some formula that guarantees
+that the triangle completely surrounds all the points (such as [[https://github.com/axelboc/voronoi-delaunay/blob/master/app/lib/voronoi.js#L130][here]] or
+[[https://github.com/ariqchowdhury/bowyer-watson/blob/master/bowyer_watson.go#L55][here]]).
+
+This is a mistake. It's not enough that the triangle surrounds all the
+points, you have to guarantee that the vertices are outside every
+possible circumcircle of any three points, and these circumcircles can
+very easily become huge. In fact, if three points are collinear,
+the "circumcircle" is essentially a half-plane. Even if no three
+points are collinear, if they're even close to collinear, the radius
+of the circle is *massive*. If you don't do this, the delaunay
+triangulation will not be correct. One easy way to spot incorrect
+implementations is that the the convex hull will not be part of the
+triangulation, and the convex hull is always part of the delaunay
+triangulation. Virtually every implemention of this algorithm i could
+find online made this mistake, and you can often see it in the
+visualizations ([[https://cdn.rawgit.com/axelboc/voronoi-delaunay/v2.1/index.htm][here]], for instance).
+
+That means that you have to treat the vertices of the surrounding
+triangle as "symbolic" points. One way of thinking about them is that
+they're sort of "infinitely" far away, but it's more correct to say
+that they're points with special rules for how they're compared to the
+rest of the points. [[http://www.cs.uu.nl/geobook/interpolation.pdf][Computational Geometry: Algorithms and
+Applications]] describes this approach, but even they are wrong in one
+small detail: the test on the bottom on page 204 is wrong.
+
+This experience has lead me to belive that using the incremental
+approach to generate Delaunay triangulations and Voronoi diagrams is
+bad. It seems simpler to implement than other versions, but this
+subtlety with the containing triangle the fact that you have to
+construct an intricate tree structure makes the algorithm more complex
+and easier to get wrong than something like Quickhull or Fortune's
+sweep-line algorithm. It's also usually a bit slower. Still, it was a
+fun thing to implement.
