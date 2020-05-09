@@ -191,13 +191,15 @@ namespace GK {
 							Geom.RotateRightAngle(v1)
 						));
 					} else {
-						edges.Add(new VoronoiDiagram.Edge(
-							VoronoiDiagram.EdgeType.Segment,
-							ptCurr.Point,
-							tiCurr / 3,
-							tiNext / 3,
-							v2nan
-						));
+						if (!Geom.AreCoincident(centers[tiCurr/3], centers[tiNext/3])) {
+							edges.Add(new VoronoiDiagram.Edge(
+								VoronoiDiagram.EdgeType.Segment,
+								ptCurr.Point,
+								tiCurr / 3,
+								tiNext / 3,
+								v2nan
+							));
+						}
 					}
 				}
 			}

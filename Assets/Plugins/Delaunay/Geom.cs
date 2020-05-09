@@ -6,6 +6,13 @@ namespace GK {
 	public class Geom : MonoBehaviour {
 
 		/// <summary>
+		/// Are these two vectors (approximately) coincident
+		/// </summary>
+		public static bool AreCoincident(Vector2 a, Vector2 b) {
+			return (a - b).magnitude < 0.000001f;
+		}
+
+		/// <summary>
 		/// Is point p to the left of the line from l0 to l1?
 		/// </summary>
 		public static bool ToTheLeft(Vector2 p, Vector2 l0, Vector2 l1) {
@@ -44,7 +51,7 @@ namespace GK {
 					(ax*ax + ay*ay) * (bx*cy-cx*by) -
 					(bx*bx + by*by) * (ax*cy-cx*ay) +
 					(cx*cx + cy*cy) * (ax*by-bx*ay)
-			) > 0;
+			) > 0.000001f;
 		}
 
 		/// <summary>
