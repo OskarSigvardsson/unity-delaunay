@@ -16,6 +16,9 @@ namespace GK {
 		public float MinImpactToBreak = 50.0f;
 
 		float _Area = -1.0f;
+
+		int age;
+
 		public float Area {
 			get {
 				if (_Area < 0.0f) {
@@ -27,6 +30,8 @@ namespace GK {
 		}
 
 		void Start() {
+			age = 0;
+
 			Reload();
 		}
 
@@ -61,14 +66,14 @@ namespace GK {
 		void FixedUpdate() {
 			var pos = transform.position;
 
+			age++;
 			if (pos.magnitude > 1000.0f) {
 				DestroyImmediate(gameObject);
 			}
 		}
 
 		void OnCollisionEnter(Collision coll) {
-
-			if (coll.impactForceSum.magnitude > MinImpactToBreak) {
+			if (age > 5 && coll.impactForceSum.magnitude > MinImpactToBreak) {
 				var pnt = coll.contacts[0].point;
 				Break((Vector2)transform.InverseTransformPoint(pnt));
 			}
@@ -93,7 +98,7 @@ namespace GK {
 				var sites = new Vector2[10];
 
 				for (int i = 0; i < sites.Length; i++) {
-					var dist = Mathf.Abs(NormalizedRandom(0.0f, 1.0f/2.0f));
+					var dist = Mathf.Abs(NormalizedRandom(0.5f, 1.0f/2.0f));
 					var angle = 2.0f * Mathf.PI * Random.value;
 
 					sites[i] = position + new Vector2(
