@@ -48,6 +48,26 @@ namespace GK {
 			Triangles.Clear();
 		}
 
+		public override string ToString()
+		{
+			string rString = "";
+
+			rString += "#Vertices\n";
+			foreach (Vector2 vert in Vertices)
+			{
+				rString += $"X:{vert.x.ToString()}, Y:{vert.y.ToString()} \n";
+			}
+
+			rString += "#Edges of Triangles\n";
+			for (int i = 0; i < this.Triangles.Count; i++)
+			{
+				rString += $"{i.ToString()}: {this.Triangles[i].ToString()}\n";
+	
+			}
+
+			return rString;
+		}
+
 		/// <summary>
 		/// Verify that this is an actual Delaunay triangulation
 		/// </summary>
